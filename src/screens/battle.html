@@ -1,0 +1,109 @@
+<section id="battle-screen" class="screen" aria-label="전투 훈련">
+<div id="card-ghost" class="card-ghost" aria-hidden="true" hidden></div>
+    <main class="app">
+      <header class="page-header">
+        <p class="eyebrow">GRID DEFENSE · PROTOTYPE 07</p>
+        <h1>Pokémon × 명일방주</h1>
+        <a class="lobby-return" href="#lobby" title="현재 전투를 종료하고 로비로 돌아갑니다">로비</a>
+        <button id="help-button" class="secondary" type="button">도움말</button>
+      </header>
+      <section class="operation" aria-labelledby="operation-title">
+        <div class="operation-heading">
+          <div>
+            <p class="eyebrow">배치 · 실시간 전투 테스트</p>
+            <h2 id="operation-title">배치 훈련 구역</h2>
+          </div>
+          <div class="operation-badges"><span id="time-scale-badge" class="slow-badge">NORMAL ×1</span><span class="map-size" id="map-size"></span></div>
+        </div>
+        <section class="cost-hud" aria-label="소환 및 스킬 코스트">
+          <div class="cost-meter cost-meter--dp">
+            <span>DP · 소환용</span><strong id="dp-value">10 / 99</strong>
+            <progress id="dp-progress" value="0" max="1" aria-label="다음 DP 회복 진행"></progress>
+            <small>작전 중 1초마다 +1</small>
+          </div>
+          <div class="cost-meter cost-meter--pp">
+            <span>PP · 스킬용</span><strong id="pp-value">0 / 1</strong>
+            <small id="pp-growth">다음 최대치 +1까지 60초</small>
+            <small>카드를 중앙 회복 영역에 놓으면 +1 · 가득 차면 사용 불가</small>
+          </div>
+        </section>
+        <div class="prototype-controls">
+          <div class="metric"><span>기지 HP</span><strong id="base-hp">3 / 3</strong></div>
+          <div class="metric"><span>처치</span><strong id="defeated-count">0 / 1</strong></div>
+          <div class="metric"><span>도착</span><strong id="arrived-count">0 / 1</strong></div>
+          <div class="metric"><span>배치</span><strong id="deployed-count">0 / 6</strong></div>
+          <div class="metric"><span>저지</span><strong id="blocked-count">0</strong></div>
+          <label class="speed-control" for="enemy-count">적 수
+            <select id="enemy-count"><option value="1">1마리</option><option value="2">2마리</option><option value="3">3마리</option><option value="4">4마리</option></select>
+          </label>
+          <label class="speed-control" for="enemy-speed">속도
+            <select id="enemy-speed">
+              <option value="0.5">0.5칸/초</option>
+              <option value="1" selected>1칸/초</option>
+              <option value="2">2칸/초</option>
+            </select>
+          </label>
+          <div class="actions">
+            <button id="start-button" type="button">작전 시작</button>
+            <button id="reset-button" class="secondary" type="button">초기화</button>
+          </div>
+        </div>
+        <p id="operation-status" class="status" role="status" aria-live="polite"></p>
+        <div class="tactical-layout">
+          <div id="card-action-zones" class="card-action-zones" aria-label="카드 사용 영역" hidden>
+      <button type="button" data-card-mode="skill" class="card-zone card-zone--skill"><span class="card-zone__orb" aria-hidden="true">✦</span><strong>스킬 사용</strong><small>PP 1 · 맵에서 범위 선택</small></button>
+      <button type="button" data-card-mode="recover" class="card-zone card-zone--recover"><strong>PP 회복</strong><small>중앙 · 카드 1장 → PP +1</small></button>
+      <button type="button" data-card-mode="deploy" class="card-zone card-zone--deploy"><span class="card-zone__orb" aria-hidden="true">＋</span><strong>포켓몬 소환</strong><small>DP · 위치와 방향 선택</small></button>
+    </div>
+          <div class="battlefield-viewport"><div id="battlefield" class="battlefield" role="group" aria-label="배치할 칸을 선택하는 격자 전장" aria-describedby="map-description"></div></div>
+
+        </div>
+        <section class="unit-dock" aria-labelledby="roster-title">
+          <div class="dock-heading">
+            <h3 id="roster-title">손패 <span id="hand-count">9 / 9</span></h3>
+            <div class="hand-tools"><details class="graveyard"><summary>묘지 <span id="graveyard-count">0</span></summary><ul id="graveyard-list"><li>사용한 카드가 없습니다.</li></ul></details></div>
+          </div>
+          <div id="unit-roster" class="unit-roster" role="group" aria-label="사용할 손패 선택"></div>
+        </section>
+        <p id="deployment-status" class="deployment-status" role="status" aria-live="polite">손패를 누른 채 위쪽 세 영역 중 하나로 끌어 놓으세요. 키보드는 카드 선택 후 영역을 선택합니다.</p>
+        <p id="combat-status" class="combat-status" role="status" aria-live="polite">전투 대기 · 적 공격 2 / HP 9 / 공격 간격 1.2초</p>
+      </section>
+
+    </main>
+    <dialog id="help-dialog"><button id="help-close" type="button">닫기</button><h2>조작 및 규칙</h2><p id="help-state"></p>
+          <aside class="deployment-panel" aria-labelledby="selected-unit-name">
+            <p class="eyebrow">DEPLOYMENT</p>
+            <h3 id="selected-unit-name">선택 정보</h3>
+            <p id="selection-detail" class="hint"></p>
+            <p id="unit-stats" class="unit-stats"></p>
+            <div id="direction-controls" class="direction-controls" role="group" aria-label="유닛 배치 방향" hidden>
+              <button type="button" data-direction="up" aria-label="위쪽" aria-pressed="false">↑</button>
+              <button type="button" data-direction="left" aria-label="왼쪽" aria-pressed="false">←</button>
+              <span aria-hidden="true">방향</span>
+              <button type="button" data-direction="right" aria-label="오른쪽" aria-pressed="false">→</button>
+              <button type="button" data-direction="down" aria-label="아래쪽" aria-pressed="false">↓</button>
+            </div>
+            <div class="deployment-actions">
+              <button id="confirm-placement" type="button" disabled>배치 확정</button>
+              <button id="cancel-placement" type="button" class="secondary" disabled>선택 취소</button>
+            </div>
+            <p class="hint">지상형은 지상, 언덕형은 언덕에 배치합니다. 출발점·기지와 점유된 칸은 사용할 수 없습니다.</p>
+          </aside>        <div class="legend" aria-label="전장 범례">
+          <span><i class="swatch spawn"></i>출발</span>
+          <span><i class="swatch ground"></i>지상</span>
+          <span><i class="swatch hill"></i>언덕 ▴</span>
+          <span><i class="swatch route-preview-key"></i>출현 전 경로 안내</span>
+          <span><i class="swatch blocked"></i>배치 불가 ×</span>
+          <span><i class="swatch base"></i>기지</span>
+          <span><i class="swatch enemy"></i>적</span>
+          <span><i class="swatch attack-range"></i>선택 유닛 공격 범위</span>
+        </div>
+        <p id="map-description" class="hint">손패 드래그 → PP 회복·스킬·배치 영역 선택. 스킬은 맵에서 누르고 범위를 옮겨 놓고, 배치는 칸을 누른 뒤 방향으로 끌어 놓습니다. Esc로 취소할 수 있습니다.</p>
+        <p class="hint">DP는 소환 확정 시에만 소비합니다. PP 최대치는 작전 중 60초마다 1씩, 최대 10까지 늘며 현재 PP는 카드 1장을 소모해 1 회복합니다.</p>
+        <p class="hint">작전 시작 후 약 1.5초 동안 경로를 안내합니다. 안내가 완전히 사라진 다음 적이 출현합니다.</p>
+        <p class="hint">아군은 방향에 따른 범위 안의 적 하나를 공격하고, 근접 적은 자신을 저지한 아군을 공격합니다. 공격력만큼 HP가 감소하며 0이면 전투에서 제거됩니다.</p>
+      <footer>
+        <p>전투 확인용 프로토타입 · 포켓몬별 배치 유형은 임시 역할 분류입니다.</p>
+        <p>원작 권리자와 관련 없는 비공식 팬 프로젝트입니다.</p>
+      </footer></dialog>
+</section>

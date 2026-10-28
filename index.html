@@ -1,23 +1,27 @@
 <!doctype html>
 <html lang="ko">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="포켓몬과 명일방주의 시스템을 혼합한 비공식 웹 팬게임 프로젝트입니다.">
-    <title>Pokémon × 명일방주 | 웹 팬게임</title>
-  </head>
-  <body>
-    <header>
-      <h1>Pokémon × 명일방주</h1>
-      <p>비공식 웹 팬게임 프로젝트</p>
-    </header>
-    <main>
-      <h2>개발 준비 중</h2>
-      <p>포켓몬과 명일방주의 시스템을 혼합한 웹 팬게임을 준비하고 있습니다.</p>
-      <p>현재는 프로젝트 초기 구성 단계이며, 게임 기능은 아직 제공되지 않습니다.</p>
-    </main>
-    <footer>
-      <p>본 프로젝트는 원작 권리자와 관련 없는 비공식 팬 프로젝트입니다.</p>
-    </footer>
-  </body>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="포켓몬과 명일방주를 결합한 비공식 팬게임. 로비에서 전투 훈련을 시작하세요.">
+  <title>Pokémon × 명일방주 | 로비</title>
+  <link id="lobby-styles" rel="stylesheet" href="./src/styles/lobby.css">
+  <link id="battle-styles" rel="stylesheet" href="./src/styles/prototype.css" disabled>
+  <link rel="stylesheet" href="./src/styles/shell.css">
+  <script src="./src/scripts/local-server-notice.js" defer></script>
+  <script src="./src/scripts/shell.js" type="module"></script>
+</head>
+<body>
+  <header class="shell-toolbar" aria-label="공통 화면 설정">
+    <span id="screen-label">로비</span>
+    <span id="fullscreen-status" role="status" aria-live="polite"></span>
+    <button id="fullscreen-button" type="button" aria-pressed="false">전체 화면</button>
+  </header>
+  <div id="game-screen">
+<p id="screen-loading" role="status">화면을 불러오는 중입니다.</p>
+
+</div>
+  <p id="local-server-notice" hidden>로컬 서버가 필요합니다. 프로젝트 폴더에서 <code>python -m http.server 8000 --bind 127.0.0.1</code>을 실행한 뒤 http://localhost:8000 을 열어 주세요.</p>
+  <noscript>화면 연결에는 JavaScript가 필요합니다. 브라우저에서 JavaScript를 허용해 주세요.</noscript>
+</body>
 </html>
