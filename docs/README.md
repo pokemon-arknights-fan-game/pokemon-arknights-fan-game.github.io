@@ -20,3 +20,7 @@
 - [로비와 화면 연결](lobby.md)
 
 - [공통 화면 틀과 전체 화면](shell.md)
+
+- [화면 전환 효과](screen-transition.md)
+
+- [151종 카드 데이터와 등급 배정표](pokemon-cards.md)

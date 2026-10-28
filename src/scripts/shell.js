@@ -1,3 +1,4 @@
+import { createScreenTransition } from "./screen-transition.js";
 import { mount as mountLobby } from "./screens/lobby.js";
 import { mount as mountBattle } from "./screens/battle.js";
 
@@ -10,6 +11,8 @@ import { mount as mountBattle } from "./screens/battle.js";
   const host = document.getElementById("game-screen");
   const button = document.getElementById("fullscreen-button");
   const status = document.getElementById("fullscreen-status");
+  const transition = createScreenTransition(document.getElementById("screen-transition"));
+  const toolbar = document.querySelector(".shell-toolbar");
   let current = null;
   let cleanup = null;
   let pending = null;
@@ -21,19 +24,21 @@ import { mount as mountBattle } from "./screens/battle.js";
     const ticket = ++version;
     pending?.abort();
     pending = new AbortController();
+    const request = pending;
+    const timeout = setTimeout(() => request.abort(), 15000);
+    const covered = transition.cover();
+    host.inert = true;
+    toolbar.inert = true;
     cleanup?.();
     cleanup = null;
     current = null;
-    const loading = document.createElement("p");
-    loading.textContent = "화면을 불러오는 중입니다.";
-    loading.setAttribute("role", "status");
-    host.replaceChildren(loading);
     host.setAttribute("aria-busy", "true");
     document.getElementById("screen-label").textContent = screens[screen].label;
     try {
       const response = await fetch(screens[screen].url, { signal: pending.signal });
       if (!response.ok) throw new Error(`화면 요청 실패: ${response.status}`);
       const html = await response.text();
+      await covered;
       if (ticket !== version) return;
       // 저장소의 고정된 HTML만 해석합니다. 사용자·외부 문자열은 넣지 않습니다.
       const template = document.createElement("template");
@@ -46,9 +51,10 @@ import { mount as mountBattle } from "./screens/battle.js";
       document.title = `Pokémon × 명일방주 | ${screens[screen].label}`;
       const heading = host.querySelector("h1");
       heading.setAttribute("tabindex", "-1");
-      heading.focus({ preventScroll: true });
+
     } catch (error) {
-      if (ticket !== version || error.name === "AbortError") return;
+      await covered;
+      if (ticket !== version) return;
       const message = document.createElement("p");
       message.textContent = "화면을 불러오지 못했습니다. 서버 연결과 파일 경로를 확인해 주세요.";
       message.setAttribute("role", "alert");
@@ -61,7 +67,19 @@ import { mount as mountBattle } from "./screens/battle.js";
       home.textContent = "로비로 이동";
       host.replaceChildren(message, retry, home);
     } finally {
-      if (ticket === version) host.removeAttribute("aria-busy");
+      clearTimeout(timeout);
+      if (ticket === version) {
+        // 초기화·레이아웃 계산이 화면에 반영된 뒤 덮개를 걷습니다.
+        await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+        if (ticket === version) await transition.reveal();
+        if (ticket === version) {
+          host.removeAttribute("aria-busy");
+          host.inert = false;
+          toolbar.inert = false;
+          const focus = host.querySelector("h1, button");
+          focus?.focus({ preventScroll: true });
+        }
+      }
     }
   }
   window.addEventListener("hashchange", showScreen);

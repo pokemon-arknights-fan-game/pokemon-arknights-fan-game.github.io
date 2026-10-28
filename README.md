@@ -62,3 +62,7 @@ python -m http.server 8000 --bind 127.0.0.1
 
 이 프로젝트는 비공식 팬 프로젝트이며 원작 권리자와 관련이 없습니다.
 포켓몬 및 명일방주 관련 명칭과 원작 리소스의 권리는 각 권리자에게 있습니다.
+
+## 포켓몬 카드 데이터
+
+1세대 출신 151종의 카드 정의는 data/pokemon-gen1.js, 훈련 덱 목록은 data/training-deck.js에 있습니다. [등급·밸런스와 전체 배정표](docs/pokemon-cards.md)를 참고하세요.

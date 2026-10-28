@@ -23,3 +23,5 @@ shell.js가 #lobby 또는 #battle을 읽고 고정된 파일을 fetch합니다. 
 ## 새 화면 추가
 
 src/screens에 section 조각을 만들고 src/scripts/screens에 mount()와 정리 함수를 추가합니다. shell.js의 screens에 파일 URL·표시 이름·mount를 등록하고 #화면이름 링크를 추가합니다. 스타일 활성화도 등록합니다. HTML 조각의 이미지·일반 상대 링크는 최종 문서 index.html 기준임에 주의하세요.
+
+화면 교체는 [전체 화면 전환 효과](screen-transition.md)로 가립니다. 준비 완료 후 덮개가 걷히며, 전환 중 입력은 차단됩니다.

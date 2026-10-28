@@ -18,10 +18,14 @@
     <button id="fullscreen-button" type="button" aria-pressed="false">전체 화면</button>
   </header>
   <div id="game-screen">
-<p id="screen-loading" role="status">화면을 불러오는 중입니다.</p>
+<p id="screen-loading" class="screen-reader-only" role="status">화면 전환 중</p>
 
 </div>
   <p id="local-server-notice" hidden>로컬 서버가 필요합니다. 프로젝트 폴더에서 <code>python -m http.server 8000 --bind 127.0.0.1</code>을 실행한 뒤 http://localhost:8000 을 열어 주세요.</p>
+  <div id="screen-transition" class="screen-transition" hidden role="status" aria-label="화면 전환 중">
+    <div class="transition-art" aria-hidden="true"><span class="transition-ring"></span><span class="transition-mark">✦</span></div>
+    <span class="transition-caption" aria-hidden="true">POKÉMON × ARKNIGHTS</span>
+  </div>
   <noscript>화면 연결에는 JavaScript가 필요합니다. 브라우저에서 JavaScript를 허용해 주세요.</noscript>
 </body>
 </html>

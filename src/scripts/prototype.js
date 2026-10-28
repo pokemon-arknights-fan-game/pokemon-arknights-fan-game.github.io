@@ -1,3 +1,5 @@
+import { pokemonCards, rarityRules } from "../../data/pokemon-gen1.js";
+import { trainingDeckIds } from "../../data/training-deck.js";
 import { createCardInput } from "./card-input.js";
 
 export function createBattle(signal) {
@@ -57,29 +59,21 @@ export function createBattle(signal) {
   };
   const enemyStats = { attack: 2, maxHp: 9, attackInterval: 1.2, range: [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]] };
 
-  // 배치 유형은 이번 프로토타입의 역할 분류이며 포켓몬의 공식 속성이 아닙니다.
-  const units = [
-    { id: "bulbasaur", dpCost: 3, name: "이상해씨", mark: "이", terrain: "ground", color: "#9cd6a1", role: "지상형", blockCount: 2, attack: 3, maxHp: 16, attackInterval: 1, range: attackRanges.melee },
-    { id: "charmander", dpCost: 4, name: "파이리", mark: "파", terrain: "ground", color: "#f2ac82", role: "지상형", blockCount: 0, attack: 4, maxHp: 10, attackInterval: 1, range: attackRanges.flame },
-    { id: "sandshrew", dpCost: 3, name: "모래두지", mark: "모", terrain: "ground", color: "#dfc696", role: "지상형", blockCount: 1, attack: 2, maxHp: 18, attackInterval: 0.8, range: attackRanges.melee },
-    { id: "snorlax", dpCost: 6, name: "잠만보", mark: "잠", terrain: "ground", color: "#9bbcc9", role: "지상형", blockCount: 3, attack: 4, maxHp: 26, attackInterval: 1.4, range: attackRanges.melee },
-    { id: "pikachu", dpCost: 5, name: "피카츄", mark: "피", terrain: "hill", color: "#f2d474", role: "언덕형", blockCount: 0, attack: 4, maxHp: 10, attackInterval: 1, range: attackRanges.ranged },
-    { id: "squirtle", dpCost: 4, name: "꼬부기", mark: "꼬", terrain: "hill", color: "#8ecfe9", role: "언덕형", blockCount: 0, attack: 3, maxHp: 14, attackInterval: 1.1, range: attackRanges.ranged },
-  ];
+  // 151종 정의를 기존 전투가 읽는 범위 좌표와 연결합니다.
+  const units = pokemonCards.map(card => ({ ...card, range: attackRanges[card.rangeId] }));
+  const unitById = new Map(units.map(unit => [unit.id, unit]));
+  const trainingDeck = trainingDeckIds.map(id => {
+    if (!unitById.has(id)) throw new Error(`알 수 없는 훈련 덱 카드: ${id}`);
+    return unitById.get(id);
+  });
+  if (!trainingDeck.length) throw new Error("훈련 덱은 한 장 이상이어야 합니다.");
   const cardConfig = { handSize: 9, slowScale: 0.2, ppRecovery: 1, skillCost: 1 };
-  const skillDefinitions = {
-    bulbasaur: { name: "생명의 빛", effect: "heal", amount: 3 },
-    charmander: { name: "불꽃 파동", effect: "damage", amount: 4 },
-    sandshrew: { name: "모래 파동", effect: "damage", amount: 3 },
-    snorlax: { name: "응원", effect: "buff", amount: 1, duration: 5 },
-    pikachu: { name: "전기 파동", effect: "damage", amount: 4 },
-    squirtle: { name: "회복의 물결", effect: "heal", amount: 4 },
-  };
+  const skillDefinitions = Object.fromEntries(units.map(unit => [unit.id, unit.skill]));
   let cardSerial = 0;
   let drawIndex = 0;
   let cardInput = null;
   function drawCard() {
-    const unit = units[drawIndex % units.length];
+    const unit = trainingDeck[drawIndex % trainingDeck.length];
     drawIndex += 1;
     cardSerial += 1;
     return { instanceId: `card-${cardSerial}`, unitId: unit.id };
@@ -586,6 +580,8 @@ export function createBattle(signal) {
       card.type = "button";
       card.className = "unit-card";
       card.dataset.unitId = unit.id;
+      card.dataset.rarity = unit.rarity;
+      card.title = `${unit.name} · ${rarityRules.labels[unit.rarity]}`;
       card.dataset.cardId = handCard.instanceId;
       card.setAttribute("draggable", "false");
       card.style.setProperty("--unit-color", unit.color);
@@ -621,7 +617,7 @@ export function createBattle(signal) {
     const rangeOrigin = pending || inspected;
     const highlightedCells = displayUnit && rangeOrigin ? getRangeCells(rangeOrigin, displayUnit.range, rangeOrigin.direction) : [];
     view.unitStats.textContent = gameState.cardAction.mode === "skill" && selected ? `${skillDefinitions[selected.id].name} · PP 1 · 중심 포함 3×3 범위 · ${skillDescription(selected.id)}` : displayUnit ? `소환 DP ${displayUnit.dpCost} · 공격 ${displayUnit.attack + (!selected ? inspected?.attackBuff || 0 : 0)} · HP ${inspected && !selected ? inspected.hp : displayUnit.maxHp}/${displayUnit.maxHp} · ${displayUnit.attackInterval}초마다 단일 공격` : "카드를 선택하고 칸·방향을 정하면 공격 범위가 표시됩니다. 배치한 유닛을 눌러 범위를 확인하세요.";
-    view.deployedCount.textContent = `${gameState.placements.length} / ${units.length}`;
+    view.deployedCount.textContent = `${gameState.placements.length} / ${new Set(trainingDeckIds).size}`;
     view.selectedName.textContent = displayUnit ? displayUnit.name : "선택 정보";
     view.selectionDetail.textContent = gameState.cardAction.mode === "choose"
       ? "중앙 PP 회복 · 왼쪽 스킬 · 오른쪽 배치 중 하나로 끌어 놓으세요."
@@ -642,7 +638,7 @@ export function createBattle(signal) {
       card.disabled = gameState.phase === "finished";
       card.classList.toggle("unit-card--unaffordable", gameState.costs.dp < unit.dpCost);
       card.setAttribute("aria-pressed", String(card.dataset.cardId === gameState.cardAction.cardId));
-      card.setAttribute("aria-label", `${unit.name}, 소환 DP ${unit.dpCost}, ${gameState.costs.dp < unit.dpCost ? "DP 부족, " : ""}${unit.role}, 최대 저지 ${unit.blockCount}, 스킬 PP 1, ${skillDefinitions[unit.id].name}${placed ? ", 배치 중, 스킬과 PP 회복 가능" : ""}`);
+      card.setAttribute("aria-label", `${unit.name}, ${rarityRules.labels[unit.rarity]}, 소환 DP ${unit.dpCost}, ${gameState.costs.dp < unit.dpCost ? "DP 부족, " : ""}${unit.role}, 최대 저지 ${unit.blockCount}, 스킬 PP 1, ${skillDefinitions[unit.id].name}${placed ? ", 배치 중, 스킬과 PP 회복 가능" : ""}`);
       card.querySelector(".unit-card__stats").textContent = `⚔ ${unit.attack + (placed?.attackBuff || 0)} / HP ${gameState.placements.find((item) => item.unitId === unit.id)?.hp ?? (gameState.fallenUnitIds.has(unit.id) ? 0 : unit.maxHp)}`;
       card.querySelector(".unit-card__role").textContent = gameState.fallenUnitIds.has(unit.id) ? "전투불능" : placed ? `저지 ${getBlockedCount(unit.id)} / ${unit.blockCount}` : `${unit.role} · 저지 ${unit.blockCount}`;
     }

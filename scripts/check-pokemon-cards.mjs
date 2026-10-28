@@ -1,0 +1,46 @@
+import { readFile } from "node:fs/promises";
+import assert from "node:assert/strict";
+const load = async path => import(`data:text/javascript;base64,${Buffer.from(await readFile(new URL(path, import.meta.url))).toString("base64")}`);
+const { pokemonCards: cards, rarityRules: rules } = await load("../data/pokemon-gen1.js");
+const { trainingDeckIds } = await load("../data/training-deck.js");
+const source = JSON.parse(await readFile(new URL("../data/source/pokeapi/gen1-species.json", import.meta.url)));
+const byId = new Map(cards.map(card => [card.id, card]));
+assert.equal(cards.length, 151);
+assert.equal(byId.size, 151);
+assert.deepEqual(cards.map(card => card.dexNumber), Array.from({ length: 151 }, (_, i) => i + 1));
+const counts = Object.fromEntries(rules.order.map(rarity => [rarity, 0]));
+const types = new Set(["normal","fire","water","grass","electric","ice","fighting","poison","ground","flying","psychic","bug","rock","ghost","dragon","fairy","steel","dark"]);
+for (const card of cards) {
+  const original = source.find(row => row.dexNumber === card.dexNumber);
+  assert.equal(card.name, original.name);
+  assert.deepEqual(card.types, original.types);
+  assert(card.types.length >= 1 && card.types.length <= 2 && card.types.every(type => types.has(type)));
+  assert(rules.order.includes(card.rarity));
+  counts[card.rarity]++;
+  assert(["ground", "hill"].includes(card.terrain));
+  assert(Number.isInteger(card.blockCount) && card.blockCount >= 0 && card.blockCount <= 3);
+  if (card.terrain === "hill") assert.equal(card.blockCount, 0);
+  for (const key of ["attack", "maxHp", "dpCost"]) assert(Number.isInteger(card[key]) && card[key] > 0 && card[key] <= (key === "dpCost" ? 99 : 100));
+  assert(card.attackInterval > 0 && Number.isFinite(card.attackInterval));
+  assert(["melee", "flame", "ranged"].includes(card.rangeId));
+  assert(["damage", "heal", "buff"].includes(card.skill.effect));
+  assert(Number.isInteger(card.skill.amount) && card.skill.amount > 0);
+  assert.equal(card.skill.ppCost, 1);
+  assert.equal(card.skill.area, "square-3x3");
+  if (card.skill.effect === "buff") assert(card.skill.duration > 0);
+  assert.equal(card.evolvesFrom, original.evolvesFromDex ? source.find(row => row.dexNumber === original.evolvesFromDex).id : null);
+  if (card.evolvesFrom) {
+    const parent = byId.get(card.evolvesFrom);
+    assert(parent && parent.evolvesTo.includes(card.id));
+    assert(rules.order.indexOf(parent.rarity) < rules.order.indexOf(card.rarity), `${parent.id} -> ${card.id}`);
+    assert.equal(card.evolutionStage, parent.evolutionStage + 1);
+  } else assert.equal(card.evolutionStage, 0);
+  for (const child of card.evolvesTo) assert.equal(byId.get(child)?.evolvesFrom, card.id);
+  if (original.isLegendary || original.isMythical) assert.equal(card.rarity, "legendary");
+}
+assert.deepEqual(counts, { bronze: 61, silver: 45, gold: 30, legendary: 15 });
+assert.deepEqual(counts, rules.counts);
+assert(trainingDeckIds.length && trainingDeckIds.every(id => byId.has(id)));
+assert.equal(byId.get("eevee").evolvesTo.length, 3);
+assert.equal(byId.get("pikachu").evolvesFrom, null);
+console.log("PASS: 151 identities, source names/types, strict evolution rarity, exact quotas, valid combat/skill fields and training deck");
