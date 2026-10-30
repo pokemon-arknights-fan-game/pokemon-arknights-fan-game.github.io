@@ -11,3 +11,7 @@
 실제 게임 스크립트는 index.html에서 불러옵니다. iframe이나 문서 간 메시지 전달은 사용하지 않습니다.
 
 화면별 진입점은 screens/의 mount()입니다. ES 모듈을 사용하므로 로컬에서도 HTTP 서버로 실행합니다.
+
+- deck-store.js: 보유량·편성 검증과 브라우저 저장
+- deck-piles.js: 유한 덱·손패·필드·묘지 순환
+- screens/decks.js: 보유 카드, 덱 목록·편집·전투 선택 UI

@@ -1,0 +1,40 @@
+/* 보유 카드와 덱 화면은 화면 안의 목록만 스크롤합니다. */
+.deck-screen { display: grid; grid-template-rows: auto auto auto minmax(0,1fr); gap: 10px; padding: 16px; background: radial-gradient(at top left,#25453d55,transparent 60%),#14212a; color:#e5eef1; font-family:"Malgun Gothic",system-ui,sans-serif; }
+.deck-header { display:flex;align-items:center;gap:16px;min-width:0; }
+.deck-header h1 { font-size:22px;margin:0 auto 0 0; }
+.deck-screen a { color:#b1e7cd;text-decoration:none;padding:7px; }
+.deck-screen button,.deck-screen input,.deck-screen select { font:inherit;font-size:13px;border:1px solid #617a80;border-radius:5px;padding:6px 9px;min-height:32px; }
+.deck-screen button,.primary-link { background:#addfc2;color:#14271e;cursor:pointer; }
+.deck-screen button:disabled { opacity:.4;cursor:default; }
+.deck-screen input,.deck-screen select { min-width:0;background:#101c24;color:#edf5f7; }
+.deck-screen .secondary { background:#263b47;color:#e4b6bb; }
+.deck-screen h2 { margin:0;font-size:17px; }
+.deck-screen h3 { margin:0;font-size:14px; }
+.deck-screen :focus-visible { outline:2px solid #ffdc8b;outline-offset:-2px; }
+.deck-hint,.deck-message { margin:0;color:#adc2c7;font-size:12px;line-height:1.5; }
+.deck-message { min-height:18px;color:#ffe0a3; }
+.catalog-filters { display:flex;gap:10px;align-items:center; }
+.catalog-filters label,.editor-toolbar label { display:flex;gap:6px;align-items:center;font-size:12px;min-width:0; }
+.catalog-filters label:first-child { flex:1; }
+.catalog-filters input { width:100%; }
+.collection-grid { min-height:0;overflow:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));align-content:start;gap:8px;padding:3px; }
+.collection-card { display:flex;flex-direction:column;gap:5px;padding:10px;border:1px solid #405860;border-top:3px solid var(--card-color);background:#20333c;border-radius:5px; }
+.card-meta { color:#adc5cc;font-size:11px; }
+.collection-card[data-rarity=legendary] { border-left-color:#c39d63; }
+.card-quantity { display:flex;align-items:center;justify-content:space-between;gap:4px;margin-top:4px; }
+.card-quantity button { width:32px;padding:0;font-size:18px; }
+.card-quantity strong { font-size:12px; }
+.deck-list { min-height:0;overflow:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));align-content:start;gap:12px;padding:3px; }
+.deck-tile { padding:18px;background:#20343b;border:1px solid #50716c;border-radius:7px;display:grid;gap:12px; }
+.deck-actions { display:flex;align-items:center;gap:10px; }
+.editor-toolbar { display:flex;align-items:center;gap:16px; }
+.editor-toolbar label { flex:1; }
+.editor-toolbar input { width:min(100%,400px); }
+.editor-columns { min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:16px; }
+.editor-catalog { min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr);gap:10px; }
+.chosen-panel { min-height:0;overflow:auto;background:#102028;padding:12px; }
+.chosen-row { display:flex;gap:6px;align-items:center;justify-content:space-between;border-bottom:1px solid #34505a;padding:5px 0;font-size:12px; }
+.chosen-row button { padding:0;width:30px; }
+@media (max-width:650px) { .deck-screen { padding:8px;gap:6px; } .deck-header { gap:4px; } .deck-header h1 { font-size:16px; } .deck-header a { font-size:12px;padding:4px; } .editor-columns { grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) 125px;gap:6px; } .collection-grid { grid-template-columns:repeat(auto-fill,minmax(125px,1fr));gap:5px; } .collection-card { padding:7px; } .catalog-filters { gap:4px; } .catalog-filters label { font-size:10px; } .catalog-filters select { padding:4px;max-width:80px; } .deck-screen input { padding:5px; } }
+
+.catalog-filters label,.editor-toolbar label { white-space:nowrap; }

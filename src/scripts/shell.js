@@ -1,3 +1,5 @@
+import { mountCards, mountDeckList, mountEditor, mountSelection } from "./screens/decks.js";
+import { getSelectedDeck } from "./deck-store.js";
 import { createScreenTransition } from "./screen-transition.js";
 import { mount as mountLobby } from "./screens/lobby.js";
 import { mount as mountBattle } from "./screens/battle.js";
@@ -7,6 +9,10 @@ import { mount as mountBattle } from "./screens/battle.js";
   const screens = {
     lobby: { url: new URL("../screens/lobby.html", import.meta.url), label: "로비", mount: mountLobby },
     battle: { url: new URL("../screens/battle.html", import.meta.url), label: "전투 훈련", mount: mountBattle },
+    cards: { url: new URL("../screens/cards.html", import.meta.url), label: "보유 카드", mount: mountCards },
+    decks: { url: new URL("../screens/decks.html", import.meta.url), label: "덱 편성", mount: mountDeckList },
+    "deck-editor": { url: new URL("../screens/deck-editor.html", import.meta.url), label: "덱 편집", mount: mountEditor },
+    "deck-select": { url: new URL("../screens/deck-select.html", import.meta.url), label: "전투 덱 선택", mount: mountSelection },
   };
   const host = document.getElementById("game-screen");
   const button = document.getElementById("fullscreen-button");
@@ -18,9 +24,11 @@ import { mount as mountBattle } from "./screens/battle.js";
   let pending = null;
   let version = 0;
   async function showScreen() {
-    const requested = location.hash.slice(1) || "lobby";
+    const route = location.hash.slice(1) || "lobby";
+    const requested = route.split("?")[0];
     const screen = Object.hasOwn(screens, requested) ? requested : "lobby";
-    if (current === screen) return;
+    if (screen === "battle" && !getSelectedDeck()) { location.hash = "deck-select";return; }
+    if (current === route) return;
     const ticket = ++version;
     pending?.abort();
     pending = new AbortController();
@@ -45,9 +53,10 @@ import { mount as mountBattle } from "./screens/battle.js";
       template.innerHTML = html;
       document.getElementById("lobby-styles").disabled = screen !== "lobby";
       document.getElementById("battle-styles").disabled = screen !== "battle";
+      document.getElementById("deck-styles").disabled = !["cards", "decks", "deck-editor", "deck-select"].includes(screen);
       host.replaceChildren(template.content);
       cleanup = screens[screen].mount();
-      current = screen;
+      current = route;
       document.title = `Pokémon × 명일방주 | ${screens[screen].label}`;
       const heading = host.querySelector("h1");
       heading.setAttribute("tabindex", "-1");

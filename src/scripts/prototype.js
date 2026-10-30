@@ -1,8 +1,13 @@
 import { pokemonCards, rarityRules } from "../../data/pokemon-gen1.js";
-import { trainingDeckIds } from "../../data/training-deck.js";
+import { createBattlePiles } from "./deck-piles.js";
+import { validateDeck } from "./deck-store.js";
 import { createCardInput } from "./card-input.js";
 
-export function createBattle(signal) {
+export function createBattle(signal, deck) {
+  const deckIds = [...deck.cards];
+  const deckErrors = validateDeck(deckIds);
+  if (deckErrors.length) throw new Error(deckErrors.join(" / "));
+  let piles = createBattlePiles(deckIds);
   const listen = (target, type, handler) => target.addEventListener(type, handler, { signal });
   let disposed = false;
 
@@ -62,23 +67,9 @@ export function createBattle(signal) {
   // 151종 정의를 기존 전투가 읽는 범위 좌표와 연결합니다.
   const units = pokemonCards.map(card => ({ ...card, range: attackRanges[card.rangeId] }));
   const unitById = new Map(units.map(unit => [unit.id, unit]));
-  const trainingDeck = trainingDeckIds.map(id => {
-    if (!unitById.has(id)) throw new Error(`알 수 없는 훈련 덱 카드: ${id}`);
-    return unitById.get(id);
-  });
-  if (!trainingDeck.length) throw new Error("훈련 덱은 한 장 이상이어야 합니다.");
   const cardConfig = { handSize: 9, slowScale: 0.2, ppRecovery: 1, skillCost: 1 };
   const skillDefinitions = Object.fromEntries(units.map(unit => [unit.id, unit.skill]));
-  let cardSerial = 0;
-  let drawIndex = 0;
   let cardInput = null;
-  function drawCard() {
-    const unit = trainingDeck[drawIndex % trainingDeck.length];
-    drawIndex += 1;
-    cardSerial += 1;
-    return { instanceId: `card-${cardSerial}`, unitId: unit.id };
-  }
-  function createHand() { return Array.from({ length: cardConfig.handSize }, drawCard); }
   function emptyCardAction() { return { cardId: null, mode: null, target: null, locked: false }; }
 
   const directions = {
@@ -106,8 +97,8 @@ export function createBattle(signal) {
     fallenUnitIds: new Set(),
     inspectedUnitId: null,
     costs: createCostState(),
-    hand: createHand(),
-    graveyard: [],
+    hand: piles.hand,
+    graveyard: piles.graveyard,
     cardAction: emptyCardAction(),
     phase: "ready",
     previewElapsed: 0,
@@ -279,10 +270,9 @@ export function createBattle(signal) {
   function resetGame() {
     cardInput?.cancelPointer();
     gameState.cardAction = emptyCardAction();
-    cardSerial = 0;
-    drawIndex = 0;
-    gameState.hand = createHand();
-    gameState.graveyard = [];
+    piles = createBattlePiles(deckIds);
+    gameState.hand = piles.hand;
+    gameState.graveyard = piles.graveyard;
     view.graveyardList.replaceChildren();
     createUnitCards();
     if (gameState.frameId !== null) cancelAnimationFrame(gameState.frameId);
@@ -540,12 +530,14 @@ export function createBattle(signal) {
     const fallen = gameState.placements.filter((item) => item.hp <= 0);
     for (const placement of fallen) {
       gameState.fallenUnitIds.add(placement.unitId);
+      piles.releaseField(placement.cardInstanceId, "defeated");
       for (const enemy of gameState.enemies) {
         if (enemy.blockedBy === placement.unitId) enemy.blockedBy = null;
       }
       if (gameState.inspectedUnitId === placement.unitId) gameState.inspectedUnitId = null;
     }
     gameState.placements = gameState.placements.filter((item) => item.hp > 0);
+    if (fallen.length) { createUnitCards(); renderPiles(); }
   }
 
   function isReservedTile(x, y) {
@@ -557,7 +549,6 @@ export function createBattle(signal) {
     if (gameState.phase === "finished") return "작전이 종료되었습니다. 먼저 초기화하세요.";
     const unit = units.find((item) => item.id === unitId);
     if (!unit) return "하단에서 배치할 유닛을 먼저 선택하세요.";
-    if (gameState.fallenUnitIds.has(unitId)) return "전투불능 유닛입니다. 초기화 후 다시 배치할 수 있습니다.";
     if (gameState.placements.some((item) => item.unitId === unitId)) return "이미 배치한 유닛입니다.";
     const tile = stageTiles.find((item) => item.x === x && item.y === y);
     if (!tile || tile.terrain === "blocked" || isReservedTile(x, y)) return "이 칸에는 배치할 수 없습니다.";
@@ -612,12 +603,13 @@ export function createBattle(signal) {
   function renderDeployment() {
     const selected = units.find((unit) => unit.id === gameState.selectedUnitId);
     const inspected = gameState.placements.find((item) => item.unitId === gameState.inspectedUnitId);
+    document.getElementById("retreat-unit").disabled = !inspected || gameState.phase === "finished";
     const displayUnit = selected || units.find((unit) => unit.id === inspected?.unitId);
     const pending = gameState.pendingPlacement;
     const rangeOrigin = pending || inspected;
     const highlightedCells = displayUnit && rangeOrigin ? getRangeCells(rangeOrigin, displayUnit.range, rangeOrigin.direction) : [];
     view.unitStats.textContent = gameState.cardAction.mode === "skill" && selected ? `${skillDefinitions[selected.id].name} · PP 1 · 중심 포함 3×3 범위 · ${skillDescription(selected.id)}` : displayUnit ? `소환 DP ${displayUnit.dpCost} · 공격 ${displayUnit.attack + (!selected ? inspected?.attackBuff || 0 : 0)} · HP ${inspected && !selected ? inspected.hp : displayUnit.maxHp}/${displayUnit.maxHp} · ${displayUnit.attackInterval}초마다 단일 공격` : "카드를 선택하고 칸·방향을 정하면 공격 범위가 표시됩니다. 배치한 유닛을 눌러 범위를 확인하세요.";
-    view.deployedCount.textContent = `${gameState.placements.length} / ${new Set(trainingDeckIds).size}`;
+    view.deployedCount.textContent = `${gameState.placements.length} / ${new Set(deckIds).size}`;
     view.selectedName.textContent = displayUnit ? displayUnit.name : "선택 정보";
     view.selectionDetail.textContent = gameState.cardAction.mode === "choose"
       ? "중앙 PP 회복 · 왼쪽 스킬 · 오른쪽 배치 중 하나로 끌어 놓으세요."
@@ -639,8 +631,8 @@ export function createBattle(signal) {
       card.classList.toggle("unit-card--unaffordable", gameState.costs.dp < unit.dpCost);
       card.setAttribute("aria-pressed", String(card.dataset.cardId === gameState.cardAction.cardId));
       card.setAttribute("aria-label", `${unit.name}, ${rarityRules.labels[unit.rarity]}, 소환 DP ${unit.dpCost}, ${gameState.costs.dp < unit.dpCost ? "DP 부족, " : ""}${unit.role}, 최대 저지 ${unit.blockCount}, 스킬 PP 1, ${skillDefinitions[unit.id].name}${placed ? ", 배치 중, 스킬과 PP 회복 가능" : ""}`);
-      card.querySelector(".unit-card__stats").textContent = `⚔ ${unit.attack + (placed?.attackBuff || 0)} / HP ${gameState.placements.find((item) => item.unitId === unit.id)?.hp ?? (gameState.fallenUnitIds.has(unit.id) ? 0 : unit.maxHp)}`;
-      card.querySelector(".unit-card__role").textContent = gameState.fallenUnitIds.has(unit.id) ? "전투불능" : placed ? `저지 ${getBlockedCount(unit.id)} / ${unit.blockCount}` : `${unit.role} · 저지 ${unit.blockCount}`;
+      card.querySelector(".unit-card__stats").textContent = `⚔ ${unit.attack + (placed?.attackBuff || 0)} / HP ${gameState.placements.find((item) => item.unitId === unit.id)?.hp ?? unit.maxHp}`;
+      card.querySelector(".unit-card__role").textContent = placed ? `저지 ${getBlockedCount(unit.id)} / ${unit.blockCount}` : `${unit.role} · 저지 ${unit.blockCount}`;
     }
     for (const tile of view.tiles) {
       const x = Number(tile.dataset.x);
@@ -698,7 +690,7 @@ export function createBattle(signal) {
 
   function selectUnit(unitId) {
     const unit = units.find((item) => item.id === unitId);
-    if (!unit || gameState.fallenUnitIds.has(unitId) || gameState.phase === "finished" || gameState.placements.some((item) => item.unitId === unitId)) return;
+    if (!unit || gameState.phase === "finished" || gameState.placements.some((item) => item.unitId === unitId)) return;
     gameState.inspectedUnitId = null;
     gameState.selectedUnitId = unitId;
     gameState.pendingPlacement = null;
@@ -730,7 +722,8 @@ export function createBattle(signal) {
     const card = gameState.cardAction.cardId ? getActionCard() : gameState.hand.find((item) => item.unitId === unit.id);
     if (!card || card.unitId !== unit.id) { setDeploymentMessage("사용할 카드가 손패에 없습니다."); return false; }
     gameState.costs.dp -= unit.dpCost;
-    gameState.placements.push({ unitId: unit.id, ...pending, hp: unit.maxHp, cooldown: 0, attackBuff: 0, buffRemaining: 0 });
+    gameState.fallenUnitIds.delete(unit.id);
+    gameState.placements.push({ cardInstanceId: card.instanceId, unitId: unit.id, ...pending, hp: unit.maxHp, cooldown: 0, attackBuff: 0, buffRemaining: 0 });
     consumeHandCard(card.instanceId, "deploy");
     cardInput?.cancelPointer();
     gameState.cardAction = emptyCardAction();
@@ -764,6 +757,7 @@ export function createBattle(signal) {
     view.cardZones.hidden = !gameState.cardAction.cardId || gameState.cardAction.mode !== "choose";
     view.slowBadge.textContent = getTimeScale() < 1 ? "SLOW ×0.2 · 카드 선택 중" : "NORMAL ×1";
     view.slowBadge.classList.toggle("slow-badge--active", getTimeScale() < 1);
+    renderPiles();
     view.handCount.textContent = `${gameState.hand.length} / ${cardConfig.handSize}`;
     view.graveyardCount.textContent = String(gameState.graveyard.length);
     for (const zone of view.cardZones.querySelectorAll("[data-card-mode]")) {
@@ -774,21 +768,34 @@ export function createBattle(signal) {
     }
   }
   function consumeHandCard(cardId, use) {
-    const index = gameState.hand.findIndex((card) => card.instanceId === cardId);
-    if (index < 0) return false;
-    const card = gameState.hand[index];
-    gameState.graveyard.push({ ...card, use });
-    // 같은 슬롯을 새 개체로 교체해 항상 9장을 유지합니다.
-    gameState.hand[index] = drawCard();
+    const used = piles.useCard(cardId, use);
+    if (!used) return false;
     createUnitCards();
-    view.graveyardList.replaceChildren();
-    for (const entry of gameState.graveyard) {
-      const item = document.createElement("li");
-      item.textContent = `${units.find((unit) => unit.id === entry.unitId).name} · ${{ recover: "PP 회복", skill: "스킬", deploy: "배치" }[entry.use]} · ${entry.instanceId}`;
-      view.graveyardList.append(item);
-    }
+    renderPiles();
     return true;
   }
+  function renderPiles() {
+    document.getElementById("draw-pile-count").textContent = String(piles.drawPile.length);
+    document.getElementById("recycle-count").textContent = String(piles.recycleCount);
+    view.graveyardCount.textContent = String(piles.graveyard.length);
+    view.graveyardList.replaceChildren();
+    for (const entry of piles.graveyard) {
+      const item = document.createElement("li");
+      item.textContent = `${unitById.get(entry.unitId).name} · ${{ recover: "PP 회복", skill: "스킬", retreat: "퇴각", defeated: "전투불능" }[entry.use]}`;
+      view.graveyardList.append(item);
+    }
+  }
+  function retreatUnit() {
+    const placement = gameState.placements.find(item => item.unitId === gameState.inspectedUnitId);
+    if (!placement || gameState.phase === "finished") return;
+    cancelCardAction("퇴각했습니다. DP는 반환되지 않습니다.");
+    gameState.placements = gameState.placements.filter(item => item !== placement);
+    for (const enemy of gameState.enemies) if (enemy.blockedBy === placement.unitId) enemy.blockedBy = null;
+    piles.releaseField(placement.cardInstanceId, "retreat");
+    gameState.inspectedUnitId = null;
+    createUnitCards(); renderPiles(); renderPrototype(); renderDeployment();
+  }
+
   function finishCardAction(message) {
     cardInput?.cancelPointer();
     gameState.cardAction = emptyCardAction();
@@ -831,7 +838,7 @@ export function createBattle(signal) {
     if (!["skill", "deploy"].includes(mode)) return false;
     if (mode === "skill" && gameState.costs.pp < cardConfig.skillCost) { finishCardAction("PP가 부족해 카드가 소모되지 않았습니다."); return false; }
     const unit = units.find((item) => item.id === card.unitId);
-    if (mode === "deploy" && (gameState.costs.dp < unit.dpCost || gameState.placements.some((item) => item.unitId === unit.id) || gameState.fallenUnitIds.has(unit.id))) {
+    if (mode === "deploy" && (gameState.costs.dp < unit.dpCost || gameState.placements.some((item) => item.unitId === unit.id))) {
       finishCardAction("DP 부족 또는 이번 작전에 배치할 수 없는 포켓몬입니다. 카드는 유지됩니다."); return false;
     }
     gameState.cardAction = { cardId: card.instanceId, mode, target: null, locked: false };
@@ -906,7 +913,7 @@ export function createBattle(signal) {
     consumeHandCard(card.instanceId, "skill");
     cleanupDefeated();
     checkBattleEnd();
-    finishCardAction(`${skill.name} 사용 · 대상 ${targets} · PP 1 소비 · 새 카드 보충`);
+    finishCardAction(`${skill.name} 사용 · 대상 ${targets} · PP 1 소비 · 손패 보충`);
     return true;
   }
   function updateBuffs(deltaSeconds) {
@@ -926,7 +933,7 @@ export function createBattle(signal) {
     if (card && view.roster.contains(card)) beginCardAction(card.dataset.cardId);
   });
   listen(view.battlefield, "click", (event) => {
-    if (event.detail !== 0) return;
+    if (event.detail !== 0 && gameState.cardAction.cardId) return;
     const tile = event.target.closest("button[data-x]");
     if (!tile || !view.battlefield.contains(tile)) return;
     const cell = { x: Number(tile.dataset.x), y: Number(tile.dataset.y) };
@@ -956,6 +963,7 @@ export function createBattle(signal) {
     renderPrototype();
     renderDeployment();
   });
+  listen(document.getElementById("retreat-unit"), "click", retreatUnit);
   listen(view.start, "click", startGame);
   listen(view.reset, "click", resetGame);
   listen(view.speed, "change", () => {
@@ -978,6 +986,7 @@ export function createBattle(signal) {
     const zone = event.target.closest("[data-card-mode]");
     if (zone && view.cardZones.contains(zone)) chooseCardMode(zone.dataset.cardMode);
   });
+  document.getElementById("battle-deck-name").textContent = deck.name;
   createBattlefield();
   createUnitCards();
   renderPrototype();

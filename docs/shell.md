@@ -2,7 +2,7 @@
 
 index.html에는 공통 전체 화면 버튼과 game-screen 자리만 둡니다. 실제 로비·전투 HTML은 src/screens/lobby.html과 battle.html에 있습니다. iframe·postMessage는 사용하지 않습니다.
 
-shell.js가 #lobby 또는 #battle을 읽고 고정된 파일을 fetch합니다. response.ok를 검사하고, 성공한 HTML 조각을 삽입한 뒤 해당 화면 모듈의 mount()를 호출합니다. 모듈은 정리 함수를 반환하며 다음 이동 전에 실행합니다. 문서 자체를 교체하지 않아 전체 화면은 유지됩니다.
+shell.js가 #lobby, #battle, #cards, #decks, #deck-editor, #deck-select를 읽고 고정된 파일을 fetch합니다. response.ok를 검사하고, 성공한 HTML 조각을 삽입한 뒤 해당 화면 모듈의 mount()를 호출합니다. 모듈은 정리 함수를 반환하며 다음 이동 전에 실행합니다. 문서 자체를 교체하지 않아 전체 화면은 유지됩니다.
 
 ## 실행
 
@@ -25,3 +25,5 @@ shell.js가 #lobby 또는 #battle을 읽고 고정된 파일을 fetch합니다. 
 src/screens에 section 조각을 만들고 src/scripts/screens에 mount()와 정리 함수를 추가합니다. shell.js의 screens에 파일 URL·표시 이름·mount를 등록하고 #화면이름 링크를 추가합니다. 스타일 활성화도 등록합니다. HTML 조각의 이미지·일반 상대 링크는 최종 문서 index.html 기준임에 주의하세요.
 
 화면 교체는 [전체 화면 전환 효과](screen-transition.md)로 가립니다. 준비 완료 후 덮개가 걷히며, 전환 중 입력은 차단됩니다.
+
+덱 수정 주소는 #deck-editor?id=덱ID이며 같은 화면 종류라도 다른 ID로 이동하면 다시 초기화합니다. 전투에 사용할 덱이 없으면 #deck-select로 보냅니다. 카드·덱 화면은 decks.css만 활성화합니다.

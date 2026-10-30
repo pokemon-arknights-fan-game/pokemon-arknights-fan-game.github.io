@@ -24,3 +24,5 @@
 - [화면 전환 효과](screen-transition.md)
 
 - [151종 카드 데이터와 등급 배정표](pokemon-cards.md)
+
+- [보유 카드·덱 편성과 전투 순환](decks.md)

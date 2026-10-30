@@ -1,3 +1,4 @@
+import { getSelectedDeck } from "../deck-store.js";
 import { createBattle } from "../prototype.js";
 import { mountViewport } from "../viewport.js";
 
@@ -9,7 +10,7 @@ export function mount() {
     cleanup.reverse().forEach(stop => stop());
   };
   try {
-    cleanup.push(createBattle(controller.signal));
+    cleanup.push(createBattle(controller.signal, getSelectedDeck()));
     cleanup.push(mountViewport(controller.signal));
     return dispose;
   } catch (error) {
