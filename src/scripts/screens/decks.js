@@ -20,7 +20,7 @@ function renderCatalog(ids = null) {
     article.append(el("span", `${String(card.dexNumber).padStart(3, "0")} · ${rarityRules.labels[card.rarity]}`, "card-meta"), el("h3", card.name), el("span", `${card.role} · 저지 ${card.blockCount}`, "card-meta"), el("span", `DP ${card.dpCost} · ⚔ ${card.attack} · HP ${card.maxHp}`, "card-meta"), el("span", `보유 ${inventory[card.id]}장`, "card-meta"));
     if (ids) {
       const actions = el("div", undefined, "card-quantity");
-      for (const [action, text] of [["remove", "−"], ["add", "＋"]]) {
+      for (const [action, text] of [["remove", "빼기"], ["add", "추가"]]) {
         const button = el("button", text);
         button.type = "button"; button.dataset[action] = card.id;
         button.setAttribute("aria-label", `${card.name} 한 장 ${action === "add" ? "추가" : "제거"}`);
@@ -83,7 +83,7 @@ export function mountEditor() {
     document.getElementById("deck-total").textContent = `${draft.length} / 40`;
     const list = document.getElementById("chosen-cards");list.replaceChildren();
     for (const [unitId, count] of countsOf(draft)) {
-      const row = el("div", undefined, "chosen-row");const remove = el("button", "−");remove.type = "button";remove.dataset.remove = unitId;remove.setAttribute("aria-label", `${byId.get(unitId).name} 한 장 제거`);
+      const row = el("div", undefined, "chosen-row");const remove = el("button", "빼기");remove.type = "button";remove.dataset.remove = unitId;remove.setAttribute("aria-label", `${byId.get(unitId).name} 한 장 제거`);
       row.append(el("span", `${byId.get(unitId).name} × ${count}`), remove);list.append(row);
     }
     if (!draft.length) list.append(el("p", "카드의 ＋ 버튼으로 편성하세요."));

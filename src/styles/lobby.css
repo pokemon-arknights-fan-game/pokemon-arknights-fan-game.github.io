@@ -49,3 +49,25 @@ footer { grid-column: 1 / -1; color: #80969e; font-size: 11px; }
   .menu-name { font-size: 20px; }
   .lobby-menu { gap: 8px; }
 }
+
+/* 카드 메뉴도 사용 가능한 링크임을 전투 메뉴와 같이 명확하게 표시합니다. */
+.menu-card--cards { border-color: #8aa9d0; border-left-color: #adc9f0; background: linear-gradient(120deg, #293e56, #1c2b3a); color: #edf3fc; }
+.menu-card--cards .menu-top { color: #bed3f2; }
+.menu-card--cards:hover { background: #334c66; }
+.menu-card[href] { cursor: pointer; }
+
+.menu-card--cards { cursor:pointer; }
+.card-menu-dialog { width:min(560px,calc(100% - 32px)); max-height:calc(100dvh - 32px); padding:22px; border:1px solid #7e9eb8; border-radius:12px; background:#172934; color:#e8f0f1; box-shadow:0 18px 70px #0009; }
+.card-menu-dialog::backdrop { background:#050e17b8; backdrop-filter:blur(3px); }
+.card-dialog-header { display:flex;align-items:center;justify-content:space-between;gap:12px; }
+.card-dialog-header h2 { margin:0;font-size:21px; }
+.card-dialog-header button { padding:7px 12px;min-height:34px;border:1px solid #728f9e;border-radius:5px;color:#e8f0f1;background:#29424f;font:inherit;font-size:12px;cursor:pointer; }
+.card-menu-dialog>p { color:#a9c0c8;font-size:13px; }
+.card-dialog-options { display:grid;grid-template-columns:1fr 1fr;gap:12px; }
+.card-dialog-options a { padding:22px 14px;display:grid;gap:10px;background:#233e4b;border:1px solid #7dabc0;border-radius:7px;text-decoration:none;color:#e8f4f7; }
+.card-dialog-options a:first-child { background:#2a453d;border-color:#8dc4a9; }
+.card-dialog-options strong { font-size:21px; }
+.card-dialog-options span { font-size:12px;color:#c0d3d8; }
+.card-dialog-options a:hover { filter:brightness(1.15); }
+.card-menu-dialog :focus-visible { outline:3px solid #ffda8c;outline-offset:2px; }
+@media(max-width:420px) { .card-menu-dialog { padding:16px; } .card-dialog-options { grid-template-columns:1fr; } .card-dialog-options a { padding:16px; } }

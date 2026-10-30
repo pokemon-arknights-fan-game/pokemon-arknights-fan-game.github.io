@@ -13,11 +13,11 @@
           <span class="menu-name">전투 <span aria-hidden="true">↗</span></span>
           <span class="menu-description">프로토타입 전투 훈련 · 유닛 배치와 경로 방어</span>
         </a>
-        <a class="menu-card menu-card--cards" href="#cards">
-          <span class="menu-top"><span>02 / COLLECTION</span><span class="menu-badge">덱 편성</span></span>
+        <button id="open-card-menu" class="menu-card menu-card--cards" type="button" aria-haspopup="dialog" aria-controls="card-menu-dialog">
+          <span class="menu-top"><span>02 / COLLECTION</span><span class="menu-badge">사용 가능</span></span>
           <span class="menu-name">카드 <span aria-hidden="true">◇</span></span>
           <span class="menu-description">보유 카드 확인 · 덱 생성 및 수정</span>
-        </a>
+        </button>
         <button class="menu-card menu-card--draw" type="button" disabled>
           <span class="menu-top"><span>03 / RECRUITMENT</span><span class="menu-badge">준비 중</span></span>
           <span class="menu-name">뽑기 <span aria-hidden="true">✦</span></span>
@@ -26,4 +26,12 @@
       </nav>
       <footer>원작 권리자와 관련 없는 비공식 팬 프로젝트입니다.</footer>
     </main>
+    <dialog id="card-menu-dialog" class="card-menu-dialog" aria-labelledby="card-menu-title">
+      <header class="card-dialog-header"><h2 id="card-menu-title">카드 메뉴</h2><button id="close-card-menu" type="button">닫기</button></header>
+      <p>이용할 메뉴를 선택하세요.</p>
+      <nav class="card-dialog-options" aria-label="카드 관련 메뉴">
+        <a href="#decks"><strong>덱 편성</strong><span>덱 생성 · 수정 · 저장</span></a>
+        <a href="#cards"><strong>카드 일람</strong><span>보유 카드 151종 확인</span></a>
+      </nav>
+    </dialog>
 </section>

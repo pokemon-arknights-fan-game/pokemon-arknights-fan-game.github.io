@@ -6,7 +6,6 @@
 - card-input.js: 카드 포인터 입력
 - viewport.js: 전장 크기와 도움말
 - shell.js: HTML 조각 fetch·화면 수명·공통 전체 화면
-- screen-redirect.js: 예전 개별 화면 주소를 index.html의 고정된 해시 주소로 연결
 
 실제 게임 스크립트는 index.html에서 불러옵니다. iframe이나 문서 간 메시지 전달은 사용하지 않습니다.
 

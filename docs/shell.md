@@ -18,7 +18,7 @@ shell.js가 #lobby, #battle, #cards, #decks, #deck-editor, #deck-select를 읽�
 - 오류는 문구와 재시도·로비 링크로 표시합니다.
 - 화면 정리는 이벤트 signal 취소, 전투 프레임 취소, 포인터 해제, 도움말 닫기, 관찰자 disconnect를 포함합니다. 로비에서는 전투가 생성되지 않습니다.
 
-현재 스타일은 현재 화면의 CSS만 활성화합니다. 루트 lobby.html·battle.html은 기존 주소의 호환 리다이렉트이며 실제 내용은 src/screens에 있습니다.
+현재 스타일은 현재 화면의 CSS만 활성화합니다. 로비·전투 HTML은 src/screens에만 두며 루트의 중복 진입 파일은 제거했습니다. 진입 주소는 index.html 또는 index.html#화면이름입니다.
 
 ## 새 화면 추가
 
@@ -27,3 +27,5 @@ src/screens에 section 조각을 만들고 src/scripts/screens에 mount()와 정
 화면 교체는 [전체 화면 전환 효과](screen-transition.md)로 가립니다. 준비 완료 후 덮개가 걷히며, 전환 중 입력은 차단됩니다.
 
 덱 수정 주소는 #deck-editor?id=덱ID이며 같은 화면 종류라도 다른 ID로 이동하면 다시 초기화합니다. 전투에 사용할 덱이 없으면 #deck-select로 보냅니다. 카드·덱 화면은 decks.css만 활성화합니다.
+
+화면 조각 HTML은 cache: no-store로 요청해 이전 로비 마크업이 캐시에 남아 메뉴 상태가 오래 표시되는 것을 방지합니다. 수정 전 화면이 열린 탭은 Ctrl+Shift+R로 공통 스크립트까지 새로 불러오세요.

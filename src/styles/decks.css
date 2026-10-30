@@ -38,3 +38,10 @@
 @media (max-width:650px) { .deck-screen { padding:8px;gap:6px; } .deck-header { gap:4px; } .deck-header h1 { font-size:16px; } .deck-header a { font-size:12px;padding:4px; } .editor-columns { grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) 125px;gap:6px; } .collection-grid { grid-template-columns:repeat(auto-fill,minmax(125px,1fr));gap:5px; } .collection-card { padding:7px; } .catalog-filters { gap:4px; } .catalog-filters label { font-size:10px; } .catalog-filters select { padding:4px;max-width:80px; } .deck-screen input { padding:5px; } }
 
 .catalog-filters label,.editor-toolbar label { white-space:nowrap; }
+
+/* 작은 기호 대신 명확한 수량 동작을 표시하고 세로 중앙에 배치합니다. */
+.card-quantity button,.chosen-row button { display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;min-height:32px;width:36px;padding:0;font-size:11px;font-weight:700;line-height:1.2;color:#14271e;letter-spacing:0;white-space:nowrap; }
+.chosen-row button { width:44px; }
+
+/* 일반 링크의 밝은 글자색이 민트색 버튼 위에 적용되지 않도록 우선순위를 명시합니다. */
+.deck-screen a.primary-link { color:#14271e;font-weight:700;display:inline-flex;align-items:center;justify-content:center;border-radius:5px;min-height:32px; }

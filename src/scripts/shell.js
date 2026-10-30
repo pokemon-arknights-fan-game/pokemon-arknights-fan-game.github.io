@@ -43,7 +43,8 @@ import { mount as mountBattle } from "./screens/battle.js";
     host.setAttribute("aria-busy", "true");
     document.getElementById("screen-label").textContent = screens[screen].label;
     try {
-      const response = await fetch(screens[screen].url, { signal: pending.signal });
+      // 개발 중 수정한 화면이 예전 캐시로 표시되지 않도록 조각 HTML은 매번 갱신합니다.
+      const response = await fetch(screens[screen].url, { signal: pending.signal, cache: "no-store" });
       if (!response.ok) throw new Error(`화면 요청 실패: ${response.status}`);
       const html = await response.text();
       await covered;

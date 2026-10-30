@@ -8,8 +8,6 @@
 ```text
 .
 ├── index.html       # 공통 화면 틀 / GitHub Pages 진입 페이지
-├── lobby.html       # 로비 호환 진입점
-├── battle.html      # 전투 호환 진입점
 ├── assets/          # 이미지, 오디오 등 정적 리소스
 │   ├── images/      # 이미지 리소스
 │   └── audio/       # 오디오 리소스
